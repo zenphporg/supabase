@@ -313,7 +313,7 @@ services:
       interval: 5s
       retries: 3
     volumes:
-      - ./volumes/logs/vector.yml:/
+      - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro
 
 volumes:
   db-config:
