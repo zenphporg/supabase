@@ -314,3 +314,6 @@ services:
       retries: 3
     volumes:
       - ./volumes/logs/vector.yml:/
+
+volumes:
+  db-config:
