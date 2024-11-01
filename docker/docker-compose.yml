@@ -5,7 +5,7 @@ services:
    image: supabase/studio:20241014-c083b3b
    restart: unless-stopped
    healthcheck:
-     test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/profile', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+     test: ["CMD", "node", "-e", "require('http').get('http://localhost:3800/api/profile', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
      timeout: 5s
      interval: 5s
      retries: 3
@@ -13,6 +13,7 @@ services:
      analytics:
        condition: service_healthy
    environment:
+     PORT: 3800
      STUDIO_PG_META_URL: http://meta:8080
      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
      DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
