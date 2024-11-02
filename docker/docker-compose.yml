@@ -309,59 +309,59 @@ services:
   diagnostic-helper:
     image: alpine:latest
     command: >
-      sh -c "
+      sh -c '
         apk add --no-cache curl jq postgresql-client;
         while true; do
-          echo '=== Supabase Services Health Check ===';
+          echo "=== Supabase Services Health Check ===";
 
-          # Check DB (Primary dependency)
-          echo '\n🗄️ Checking DB (5432)';
+          # Check DB
+          echo "\n🗄️ Checking DB (5432)";
           if pg_isready -h db -p 5432 -U postgres; then
-            echo '✅ Database is accepting connections';
-            psql -h db -U postgres -c 'SELECT version();' && echo '✅ Can execute SQL' || echo '❌ Cannot execute SQL';
+            echo "✅ Database is accepting connections";
+            psql -h db -U postgres -c "SELECT version();" && echo "✅ Can execute SQL" || echo "❌ Cannot execute SQL";
           else
-            echo '❌ Database connection failed';
+            echo "❌ Database connection failed";
           fi;
 
-          # Check Vector (DB depends on this)
-          echo '\n📊 Checking Vector (9001)';
-          curl -s http://vector:9001/health && echo '✅ Vector health check passed' || echo '❌ Vector health check failed';
+          # Check Vector
+          echo "\n📊 Checking Vector (9001)";
+          curl -s http://vector:9001/health && echo "✅ Vector health check passed" || echo "❌ Vector health check failed";
 
-          # Check Analytics (Many services depend on this)
-          echo '\n📈 Checking Analytics (4000)';
-          curl -s http://analytics:4000/health && echo '✅ Analytics is healthy' || echo '❌ Analytics health check failed';
+          # Check Analytics
+          echo "\n📈 Checking Analytics (4000)";
+          curl -s http://analytics:4000/health && echo "✅ Analytics is healthy" || echo "❌ Analytics health check failed";
 
           # Check Kong
-          echo '\n🚪 Checking Kong (8000)';
-          curl -s -I http://kong:8000/health | head -n 1 && echo '✅ Kong is responding' || echo '❌ Kong is not responding';
+          echo "\n🚪 Checking Kong (8000)";
+          curl -s -I http://kong:8000/health | head -n 1 && echo "✅ Kong is responding" || echo "❌ Kong is not responding";
 
           # Check Auth
-          echo '\n🔑 Checking Auth (9999)';
-          curl -s http://auth:9999/health && echo '✅ Auth is healthy' || echo '❌ Auth health check failed';
+          echo "\n🔑 Checking Auth (9999)";
+          curl -s http://auth:9999/health && echo "✅ Auth is healthy" || echo "❌ Auth health check failed";
 
           # Check Storage
-          echo '\n💾 Checking Storage (5000)';
-          curl -s http://storage:5000/status && echo '✅ Storage is healthy' || echo '❌ Storage health check failed';
+          echo "\n💾 Checking Storage (5000)";
+          curl -s http://storage:5000/status && echo "✅ Storage is healthy" || echo "❌ Storage health check failed";
 
           # Check Realtime
-          echo '\n⚡ Checking Realtime (4000)';
-          curl -s -H \"Authorization: Bearer ${ANON_KEY}\" http://realtime:4000/api/tenants/realtime-dev/health &&
-            echo '✅ Realtime is healthy' || echo '❌ Realtime health check failed';
+          echo "\n⚡ Checking Realtime (4000)";
+          curl -s -H "Authorization: Bearer $${ANON_KEY}" http://realtime:4000/api/tenants/realtime-dev/health &&
+            echo "✅ Realtime is healthy" || echo "❌ Realtime health check failed";
 
           # Check Studio
-          echo '\n🖥️ Checking Studio (3800)';
+          echo "\n🖥️ Checking Studio (3800)";
           curl -s http://studio:3800/api/profile > /dev/null &&
-            echo '✅ Studio is responding' || echo '❌ Studio is not responding';
+            echo "✅ Studio is responding" || echo "❌ Studio is not responding";
 
           # Check REST
-          echo '\n🌐 Checking PostgREST (3000)';
-          curl -s http://rest:3000/ && echo '✅ REST is responding' || echo '❌ REST is not responding';
+          echo "\n🌐 Checking PostgREST (3000)";
+          curl -s http://rest:3000/ && echo "✅ REST is responding" || echo "❌ REST is not responding";
 
           # Network Connectivity Matrix
-          echo '\n🌐 Network Connectivity Matrix:';
+          echo "\n🌐 Network Connectivity Matrix:";
           for svc in studio kong auth rest realtime storage vector analytics db; do
-            echo \"Checking $svc:\";
-            nc -zv $svc $(case $svc in
+            echo "Checking $${svc}:";
+            nc -zv $${svc} $$(case $${svc} in
               studio) echo 3800;;
               kong) echo 8000;;
               auth) echo 9999;;
@@ -371,23 +371,23 @@ services:
               vector) echo 9001;;
               analytics) echo 4000;;
               db) echo 5432;;
-            esac) 2>&1 | grep -q 'open' &&
-            echo \"  ✅ Port open\" || echo \"  ❌ Port closed\";
+            esac) 2>&1 | grep -q "open" &&
+            echo "  ✅ Port open" || echo "  ❌ Port closed";
           done;
 
           # Check Environment Variables
-          echo '\n🔐 Environment Variable Check:';
+          echo "\n🔐 Environment Variable Check:";
           for var in POSTGRES_PASSWORD JWT_SECRET ANON_KEY SERVICE_ROLE_KEY LOGFLARE_API_KEY; do
-            if [ ! -z \"${!var}\" ]; then
-              echo \"✅ $var is set\";
+            if [ ! -z "$${!var}" ]; then
+              echo "✅ $${var} is set";
             else
-              echo \"❌ $var is not set\";
+              echo "❌ $${var} is not set";
             fi;
           done;
 
-          echo '\nWaiting 30 seconds before next check...';
+          echo "\nWaiting 30 seconds before next check...";
           sleep 30;
-        done"
+        done'
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -401,6 +401,5 @@ services:
         condition: service_healthy
       analytics:
         condition: service_healthy
-
 volumes:
  db-config:
