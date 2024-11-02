@@ -314,8 +314,9 @@ services:
         export PGPASSWORD=$${POSTGRES_PASSWORD};
         while true; do
           echo;
-          echo "=== SERVICES HEALTH CHECK ===";
+          echo "=== SUPABASE DIAGNOSTICS ===";
           echo;
+          echo "=== SERVICE HEALTH CHECKS ===";
 
           # Check DB
           echo "🗄️  Database on port: (5432)";
