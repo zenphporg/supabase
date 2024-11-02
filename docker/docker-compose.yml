@@ -302,5 +302,138 @@ services:
       NEXT_PUBLIC_ENABLE_LOGS: true
       NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
 
+  diagnostic-helper:
+    image: alpine:latest
+    command: >
+      sh -c '
+        apk update && apk add --no-cache curl jq postgresql-client;
+        export PGPASSWORD=$${POSTGRES_PASSWORD};
+        echo;
+        echo;
+        echo "=== SUPABASE DIAGNOSTICS ===";
+        echo;
+
+        while true; do
+          echo "=== SERVICE HEALTH CHECKS ===";
+          # Check DB
+          echo "🗄️  Database on port::[5432]";
+          if pg_isready -h db -p 5432 -U postgres > /dev/null; then
+            VERSION=$(psql -h db -U postgres -c "SELECT version();" | grep "PostgreSQL" | awk "{print \$1,\$2}");
+            echo "  ✅ $${VERSION} - accepting connections"
+          else
+            echo "  ❌ DB connection failed";
+          fi;
+
+          # Check Vector
+          echo;
+          echo "📊 Vector on port::[9001]";
+          if curl -s http://vector:9001/health | jq -r .ok | grep -q true; then
+            echo "  ✅ Healthy";
+          else
+            echo "  ❌ Health check failed";
+          fi;
+
+          # Check Analytics
+          echo;
+          echo "📈 Analytics on port::[4000]";
+          if curl -s http://analytics:4000/health | jq -e .status | grep -q "ok"; then
+            echo "  ✅ Healthy";
+          else
+            echo "  ❌ Health check failed";
+          fi;
+
+          # Check Kong
+          echo;
+          echo "🚪 Kong on port::[8000]";
+          if curl -s -I http://kong:8000/health | grep -q "401"; then
+            echo "  ✅ Responding (401 is expected)";
+          else
+            echo "  ❌ Not responding correctly";
+          fi;
+
+          # Check Auth
+          echo;
+          echo "🔑 Auth on port::[9999]";
+          if curl -s http://auth:9999/health | jq -e .name | grep -q "GoTrue"; then
+            echo "  ✅ Healthy";
+          else
+            echo "  ❌ Health check failed";
+          fi;
+
+          # Check Storage
+          echo;
+          echo "💾 Storage on port::[5000]";
+          if curl -s http://storage:5000/status > /dev/null; then
+            echo "  ✅ Healthy";
+          else
+            echo "  ❌ Health check failed";
+          fi;
+
+          # Check Realtime
+          echo;
+          echo "⚡ Realtime on port::[4000]";
+          if curl -s -H "Authorization: Bearer $${ANON_KEY}" http://realtime:4000/api/tenants/realtime-dev/health > /dev/null; then
+            echo "  ✅ Healthy";
+          else
+            echo "  ❌ Health check failed";
+          fi;
+
+          # Check Studio
+          echo;
+          echo "🖥️  Studio on port::[3000]";
+          if curl -s http://studio:3000/api/profile > /dev/null; then
+            echo "  ✅ Responding";
+          else
+            echo "  ❌ Not responding";
+          fi;
+
+          # Check REST
+          echo;
+          echo "🌐 PostgREST on port::[3000]";
+          if curl -s http://rest:3000/ | jq -e .swagger > /dev/null; then
+            echo "  ✅ API responding";
+          else
+            echo "  ❌ API not responding";
+          fi;
+
+          echo;
+          echo "=== NETWORK CONNECTIVITY ===";
+          SERVICES="Studio:studio:3000 Kong:kong:8000 Auth:auth:9999 REST:rest:3000 Realtime:realtime:4000 Storage:storage:5000 Vector:vector:9001 Analytics:analytics:4000 Database:db:5432"
+          echo "$${SERVICES}" | tr " " "\n" | while IFS=: read -r NAME HOST PORT; do
+            printf "%-12s" "$${NAME}";
+            if nc -z -w2 "$${HOST}" "$${PORT}" 2>/dev/null; then
+              echo "✅";
+            else
+              echo "❌";
+            fi;
+          done;
+
+          echo;
+          echo "=== ENVIRONMENT VARIABLES ===";
+          printf "%-20s" "POSTGRES_PASSWORD"; [ ! -z "$${POSTGRES_PASSWORD}" ] && echo "✅" || echo "❌";
+          printf "%-20s" "JWT_SECRET"; [ ! -z "$${JWT_SECRET}" ] && echo "✅" || echo "❌";
+          printf "%-20s" "ANON_KEY"; [ ! -z "$${ANON_KEY}" ] && echo "✅" || echo "❌";
+          printf "%-20s" "SERVICE_ROLE_KEY"; [ ! -z "$${SERVICE_ROLE_KEY}" ] && echo "✅" || echo "❌";
+          printf "%-20s" "LOGFLARE_API_KEY"; [ ! -z "$${LOGFLARE_API_KEY}" ] && echo "✅" || echo "❌";
+
+          echo;
+          echo "Next check in 30s...";
+          echo;
+          sleep 30;
+        done'
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - ANON_KEY=${ANON_KEY}
+      - SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
+      - LOGFLARE_API_KEY=${LOGFLARE_API_KEY}
+    depends_on:
+      vector:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      analytics:
+        condition: service_healthy
+
 volumes:
  db-config:
