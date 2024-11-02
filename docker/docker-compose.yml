@@ -319,9 +319,9 @@ services:
 
           # Check DB
           echo "🗄️  Database on port: (5432)";
-          if pg_isready -h db -p 5432 -U postgres; then
-            psql -h db -U postgres -c "SELECT version();" | grep "PostgreSQL" &&
-              echo "  ✅ DB responding with SQL" || echo "  ❌ SQL failed";
+          if pg_isready -h db -p 5432 -U postgres > /dev/null; then
+            VERSION=$(psql -h db -U postgres -c "SELECT version();" | grep "PostgreSQL" | awk "{print \$1,\$2}");
+            echo "  ✅ $${VERSION} - accepting connections"
           else
             echo "  ❌ DB connection failed";
           fi;
