@@ -411,14 +411,11 @@ services:
 
           echo;
           echo "=== Environment Variables ===";
-          for CHECK_VAR in POSTGRES_PASSWORD JWT_SECRET ANON_KEY SERVICE_ROLE_KEY LOGFLARE_API_KEY; do
-            printf "%-20s" "$${CHECK_VAR}";
-            if [ ! -z "$${!CHECK_VAR}" ]; then
-              echo "✅";
-            else
-              echo "❌";
-            fi;
-          done;
+          printf "%-20s" "POSTGRES_PASSWORD"; [ ! -z "$${POSTGRES_PASSWORD}" ] && echo "✅" || echo "❌";
+          printf "%-20s" "JWT_SECRET"; [ ! -z "$${JWT_SECRET}" ] && echo "✅" || echo "❌";
+          printf "%-20s" "ANON_KEY"; [ ! -z "$${ANON_KEY}" ] && echo "✅" || echo "❌";
+          printf "%-20s" "SERVICE_ROLE_KEY"; [ ! -z "$${SERVICE_ROLE_KEY}" ] && echo "✅" || echo "❌";
+          printf "%-20s" "LOGFLARE_API_KEY"; [ ! -z "$${LOGFLARE_API_KEY}" ] && echo "✅" || echo "❌";
 
           echo;
           echo "Next check in 30s...";
