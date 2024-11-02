@@ -389,13 +389,10 @@ services:
           fi;
 
           echo "\n=== Network Connectivity ===";
-          services="Studio:studio:3800 Kong:kong:8000 Auth:auth:9999 REST:rest:3000 Realtime:realtime:4000 Storage:storage:5000 Vector:vector:9001 Analytics:analytics:4000 Database:db:5432";
-          for svc in $services; do
-            name=$(echo $svc | cut -d: -f1);
-            host=$(echo $svc | cut -d: -f2);
-            port=$(echo $svc | cut -d: -f3);
-            printf "%-12s" "$name";
-            if nc -z -w2 $host $port 2>/dev/null; then
+          SERVICES="Studio:studio:3800 Kong:kong:8000 Auth:auth:9999 REST:rest:3000 Realtime:realtime:4000 Storage:storage:5000 Vector:vector:9001 Analytics:analytics:4000 Database:db:5432"
+          echo "$${SERVICES}" | tr " " "\n" | while IFS=: read -r NAME HOST PORT; do
+            printf "%-12s" "$${NAME}";
+            if nc -z -w2 $${HOST} $${PORT} 2>/dev/null; then
               echo "✅";
             else
               echo "❌";
@@ -403,10 +400,10 @@ services:
           done;
 
           echo "\n=== Environment Variables ===";
-          vars="POSTGRES_PASSWORD JWT_SECRET ANON_KEY SERVICE_ROLE_KEY LOGFLARE_API_KEY";
-          for var in $vars; do
-            printf "%-20s" "$var";
-            if [ ! -z "$${!var}" ]; then
+          ENV_VARS="POSTGRES_PASSWORD JWT_SECRET ANON_KEY SERVICE_ROLE_KEY LOGFLARE_API_KEY"
+          for VAR in $${ENV_VARS}; do
+            printf "%-20s" "$${VAR}";
+            if [ ! -z "$${!VAR}" ]; then
               echo "✅";
             else
               echo "❌";
