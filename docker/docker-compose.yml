@@ -312,14 +312,15 @@ services:
       sh -c '
         apk update && apk add --no-cache curl jq postgresql-client;
         export PGPASSWORD=$${POSTGRES_PASSWORD};
-        while true; do
-          echo;
-          echo "=== SUPABASE DIAGNOSTICS ===";
-          echo;
-          echo "=== SERVICE HEALTH CHECKS ===";
+        echo;
+        echo;
+        echo "=== SUPABASE DIAGNOSTICS ===";
+        echo;
 
+        while true; do
+          echo "=== SERVICE HEALTH CHECKS ===";
           # Check DB
-          echo "🗄️  Database on port: (5432)";
+          echo "🗄️  Database on port::[5432]";
           if pg_isready -h db -p 5432 -U postgres > /dev/null; then
             VERSION=$(psql -h db -U postgres -c "SELECT version();" | grep "PostgreSQL" | awk "{print \$1,\$2}");
             echo "  ✅ $${VERSION} - accepting connections"
@@ -329,7 +330,7 @@ services:
 
           # Check Vector
           echo;
-          echo "📊 Vector on port:(9001)";
+          echo "📊 Vector on port::[9001]";
           if curl -s http://vector:9001/health | jq -r .ok | grep -q true; then
             echo "  ✅ Healthy";
           else
@@ -338,7 +339,7 @@ services:
 
           # Check Analytics
           echo;
-          echo "📈 Analytics on port: (4000)";
+          echo "📈 Analytics on port::[4000]";
           if curl -s http://analytics:4000/health | jq -e .status | grep -q "ok"; then
             echo "  ✅ Healthy";
           else
@@ -347,7 +348,7 @@ services:
 
           # Check Kong
           echo;
-          echo "🚪 Kong on port:(8000)";
+          echo "🚪 Kong on port::[8000]";
           if curl -s -I http://kong:8000/health | grep -q "401"; then
             echo "  ✅ Responding (401 is expected)";
           else
@@ -356,7 +357,7 @@ services:
 
           # Check Auth
           echo;
-          echo "🔑 Auth on port: (9999)";
+          echo "🔑 Auth on port::[9999]";
           if curl -s http://auth:9999/health | jq -e .name | grep -q "GoTrue"; then
             echo "  ✅ Healthy";
           else
@@ -365,7 +366,7 @@ services:
 
           # Check Storage
           echo;
-          echo "💾 Storage on port:(5000)";
+          echo "💾 Storage on port::[5000]";
           if curl -s http://storage:5000/status > /dev/null; then
             echo "  ✅ Healthy";
           else
@@ -374,7 +375,7 @@ services:
 
           # Check Realtime
           echo;
-          echo "⚡ Realtime on port: (4000)";
+          echo "⚡ Realtime on port::[4000]";
           if curl -s -H "Authorization: Bearer $${ANON_KEY}" http://realtime:4000/api/tenants/realtime-dev/health > /dev/null; then
             echo "  ✅ Healthy";
           else
@@ -383,7 +384,7 @@ services:
 
           # Check Studio
           echo;
-          echo "🖥️  Studio on port:(3800)";
+          echo "🖥️  Studio on port::[3800]";
           if curl -s http://studio:3800/api/profile > /dev/null; then
             echo "  ✅ Responding";
           else
@@ -392,7 +393,7 @@ services:
 
           # Check REST
           echo;
-          echo "🌐 PostgREST on port: (3000)";
+          echo "🌐 PostgREST on port::[3000]";
           if curl -s http://rest:3000/ | jq -e .swagger > /dev/null; then
             echo "  ✅ API responding";
           else
