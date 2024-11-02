@@ -5,7 +5,7 @@ services:
     image: supabase/studio:20241014-c083b3b
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3800/api/profile', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/profile', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
       timeout: 5s
       interval: 5s
       retries: 3
@@ -13,8 +13,8 @@ services:
       analytics:
         condition: service_healthy
     environment:
-      PORT: 3800
-      STUDIO_PORT: 3800
+      PORT: 3000
+      STUDIO_PORT: 3000
       STUDIO_PG_META_URL: http://meta:8080
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
@@ -384,8 +384,8 @@ services:
 
           # Check Studio
           echo;
-          echo "🖥️  Studio on port::[3800]";
-          if curl -s http://studio:3800/api/profile > /dev/null; then
+          echo "🖥️  Studio on port::[3000]";
+          if curl -s http://studio:3000/api/profile > /dev/null; then
             echo "  ✅ Responding";
           else
             echo "  ❌ Not responding";
@@ -402,7 +402,7 @@ services:
 
           echo;
           echo "=== NETWORK CONNECTIVITY ===";
-          SERVICES="Studio:studio:3800 Kong:kong:8000 Auth:auth:9999 REST:rest:3000 Realtime:realtime:4000 Storage:storage:5000 Vector:vector:9001 Analytics:analytics:4000 Database:db:5432"
+          SERVICES="Studio:studio:3000 Kong:kong:8000 Auth:auth:9999 REST:rest:3000 Realtime:realtime:4000 Storage:storage:5000 Vector:vector:9001 Analytics:analytics:4000 Database:db:5432"
           echo "$${SERVICES}" | tr " " "\n" | while IFS=: read -r NAME HOST PORT; do
             printf "%-12s" "$${NAME}";
             if nc -z -w2 "$${HOST}" "$${PORT}" 2>/dev/null; then
